@@ -1,2 +1,2 @@
-# portfolio-optimizer
+# Optimizador de portafolio de inversión mediante el uso de algoritmos genéticos: caso aplicado al Ibex 35
 El objetivo de este repositorio es el de utilizar Algoritmos genéticos para  abordar  el  problema  de  optimizar  carteras  de  inversión.  Se  pretende que los modelos propuestos utilicen la medida de riesgo de Sharpe y que solucionen las limitaciones que presenta el modelo  clásico  de  Markowitz.  Se  persigue  demostrar,   con  sus  resultados  en  cuanto  a  rendimiento, que  son  una  herramienta  a  tener en cuenta por los inversores y gestores.
