@@ -7,11 +7,13 @@ import math
 import time
 import pandas as pd
 from datetime import datetime, timedelta
-
+import matplotlib.pyplot as plt
 
 class DNA(object):
     genes = []
-    fitness =  math.inf # Se selecciona inicialmente como mejor individuo el primero.
+    fitness = 0 # Se selecciona inicialmente como mejor individuo el primero.
+    exp_vol = 0
+    exp_ret = 0
     def __init__(self, size):
         self.size = size
         self.genes = copy.deepcopy(self.__generateWeights(self.size)) #Llenamos con valores entre 0 y 1 que representan los procentajes a invertir para cada acción 
@@ -37,8 +39,10 @@ class Population(object):
         self.inversion = inversion
         self.assets = assets
         self.maxPop = maxPop
-        self.historico_mejor_fitness = []
-        self.historico_mejor_predictores = []
+        self.historic_best_fitness = []
+        self.historic_best_predictor = []
+        self.historic_best_return = [] # annualised mean 
+        self.historic_best_stdev = [] # annualised volatility
         self.diferencia_abs = []
         self.biggest = 0
         self.avg_fitness = 0
@@ -94,14 +98,16 @@ class Population(object):
         self.pop = [DNA(len(self.assets)) for i in range(self.maxPop)]
     
     def __sharpe(self, genes):
-        # Expected return
+        # calculate annualised portfolio return
         exp_ret = np.sum((self.df.mean()*genes)*252)
-        # Expected volatility
+        # calculate annualised portfolio volatility
         exp_vol = np.sqrt(np.dot(genes.T,np.dot(self.df.cov()*252, genes)))
-        return exp_ret/exp_vol
+        sharpe = exp_ret/exp_vol
+
+        return {'exp_ret': exp_ret, 'exp_vol': exp_vol, 'sharpe': sharpe}
 
     def __fitness(self, genes):
-        return self.__sharpe(genes) * -1
+        return self.__sharpe(genes)
 
     def calculateFitness(self):
         # Determine the fitness of an individual. Hight is better.
@@ -112,13 +118,18 @@ class Population(object):
         
         for ix in range(len(self.pop)):
             #Fitness score is the sum of the correct letters
-            self.pop[ix].fitness = self.__fitness(self.pop[ix].genes) 
+            fitness = self.__fitness(self.pop[ix].genes) 
+            
+            self.pop[ix].fitness = fitness['sharpe']
+            self.pop[ix].exp_vol = fitness['exp_vol']
+            self.pop[ix].exp_ret = fitness['exp_ret'] 
+            
             
             self.avg_fitness += float(self.pop[ix].fitness) / len(self.assets)            
             #Save the 2 highest fitness for reproduction
-            if self.pop[ix].fitness < self.pop[self.biggest].fitness:
+            if self.pop[ix].fitness > self.pop[self.biggest].fitness:
                 self.biggest = ix
-            elif self.pop[ix].fitness < self.pop[self.second].fitness:
+            elif self.pop[ix].fitness > self.pop[self.second].fitness:
                 self.second = ix
 
         #Calculate average fitness
@@ -180,8 +191,11 @@ class Population(object):
             
             # SE ALMACENA LA INFORMACIÓN DE LA GENERACIÓN EN LOS HISTÓRICOS
             # ------------------------------------------------------------------
-            self.historico_mejor_fitness.append(copy.deepcopy(self.pop[self.biggest].fitness))
-            self.historico_mejor_predictores.append(copy.deepcopy(self.pop[self.biggest].genes))
+            self.historic_best_fitness.append(copy.deepcopy(self.pop[self.biggest].fitness))
+            self.historic_best_predictor.append(copy.deepcopy(self.pop[self.biggest].genes))
+            
+            self.historic_best_return.append(copy.deepcopy(self.pop[self.biggest].exp_ret))
+            self.historic_best_stdev.append(copy.deepcopy(self.pop[self.biggest].exp_vol))
             
             
             
@@ -192,8 +206,8 @@ class Population(object):
             if generation == 0:
                 self.diferencia_abs.append(None)
             else:
-                diferencia = abs(self.historico_mejor_fitness[generation] \
-                                - self.historico_mejor_fitness[generation-1])
+                diferencia = abs(self.historic_best_fitness[generation] \
+                                - self.historic_best_fitness[generation-1])
                 self.diferencia_abs.append(diferencia)
                 
             # CRITERIO DE PARADA
@@ -214,19 +228,22 @@ class Population(object):
                     break
             
             self.nextGeneration()
-            #print("Generation:", generation)
-            #print("Average fitness:", self.avg_fitness )
             generation += 1
 
-        indice_valor_optimo  = np.argmax(np.array(self.historico_mejor_fitness))
-        predictores_optimos = self.historico_mejor_predictores[indice_valor_optimo]
-        valor_fitness_optimo= self.historico_mejor_fitness[indice_valor_optimo]
+        indice_valor_optimo  = np.argmax(np.array(self.historic_best_fitness))
+        predictores_optimos = self.historic_best_predictor[indice_valor_optimo]
+        valor_fitness_optimo= self.historic_best_fitness[indice_valor_optimo]
 
+        ret_optimos = self.historic_best_return[indice_valor_optimo]
+        vol_optimo= self.historic_best_stdev[indice_valor_optimo]
+
+        
         resultados_df = pd.DataFrame(
             {
-            "mejor_fitness"        : self.historico_mejor_fitness,
-            "mejor_predictores"    : self.historico_mejor_predictores,
-            "diferencia_abs"       : self.diferencia_abs
+            "historic_best_fitness"        : self.historic_best_fitness,
+            "historic_best_predictor"    : self.historic_best_predictor,
+            "historic_best_return"       : self.historic_best_return,
+            "historic_best_stdev"       : self.historic_best_stdev
             }
         )
 
@@ -237,10 +254,30 @@ class Population(object):
         print("-------------------------------------------")
         print("Duración optimización: " + str(end - start))
         print("Número de generaciones: " + str(generation))
-        print("Valor métrica óptimo: " + str(valor_fitness_optimo))
-        print("Pesos óptimos: " + str(predictores_optimos))
-        print("Cartera de acciones: " + str(self.assets))
-        print("Rendimientos medio los valores: " + str(self.df.mean().values))
-        print("")
+        print("Portfolio: " + str(self.assets))
+        print("Weights: " + str(predictores_optimos))
+        print("Mean return is : " + str(self.df.mean().values))
+        print('Portfolio expected annualised return is ' + str(ret_optimos))
+        print('Portfolio expected volatility return is ' + str(vol_optimo))
+        print("Sharpe Ratio risk: " + str(valor_fitness_optimo))
+        print(""), 
 
         return resultados_df
+
+    def printHistoric(self, n_generaciones):
+        print("-------------------------------------------")
+        print(" Historial de carteras ")
+        print("-------------------------------------------")
+        for generation in range(len(self.historic_best_predictor)):
+            predictores_optimos = self.historic_best_predictor[generation]
+            valor_fitness_optimo= self.historic_best_fitness[generation]
+
+            ret_optimos = self.historic_best_return[generation]
+            vol_optimo= self.historic_best_stdev[generation]
+
+            print("Portofolio: " + str(generation))
+            print("Weights: " + str(predictores_optimos))
+            print('Expected annualised return is ' + str(ret_optimos))
+            print('Expected volatility return is ' + str(vol_optimo))
+            print("Sharpe Ratio risk: " + str(valor_fitness_optimo))
+            print("") 
