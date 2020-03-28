@@ -32,7 +32,7 @@ def main(assets = ["CLNX.MC","MTS.MC","FER.MC","SAN.MC"]):
     inversion = 10
     parada_temprana = True # si durante las últimas `rondas_parada` generaciones la diferencia absoluta entre mejores individuos no es superior al valor de  `tolerancia_parada`, se detiene el algoritmo
     rondas_parada = 5 #  número de generaciones consecutivas sin mejora mínima para que se active la parada temprana.
-    tolerancia_parada = 0.01 #valor mínimo que debe tener la diferencia de generaciones consecutivas
+    tolerancia_parada = 0.5 #valor mínimo que debe tener la diferencia de generaciones consecutivas
 
     population = Genetics.Population(inversion, assets, df, maxPop, mutation_rate)
     

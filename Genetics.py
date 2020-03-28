@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 class DNA(object):
     genes = []
-    fitness = 0 # Se selecciona inicialmente como mejor individuo el primero.
+    fitness =  math.inf # Se selecciona inicialmente como mejor individuo el primero.
     def __init__(self, size):
         self.size = size
         self.genes = copy.deepcopy(self.__generateWeights(self.size)) #Llenamos con valores entre 0 y 1 que representan los procentajes a invertir para cada acción 
@@ -101,10 +101,7 @@ class Population(object):
         return exp_ret/exp_vol
 
     def __fitness(self, genes):
-        return self.__sharpe(genes)
-
-    def evaluate(self):
-        return not all([(x == y) for x, y in zip(self.pop[self.biggest].genes, self.assets)])
+        return self.__sharpe(genes) * -1
 
     def calculateFitness(self):
         # Determine the fitness of an individual. Hight is better.
@@ -115,13 +112,13 @@ class Population(object):
         
         for ix in range(len(self.pop)):
             #Fitness score is the sum of the correct letters
-            self.pop[ix].fitness = self.__fitness(self.pop[ix].genes)
+            self.pop[ix].fitness = self.__fitness(self.pop[ix].genes) 
             
             self.avg_fitness += float(self.pop[ix].fitness) / len(self.assets)            
             #Save the 2 highest fitness for reproduction
-            if self.pop[ix].fitness > self.pop[self.biggest].fitness:
+            if self.pop[ix].fitness < self.pop[self.biggest].fitness:
                 self.biggest = ix
-            elif self.pop[ix].fitness > self.pop[self.second].fitness:
+            elif self.pop[ix].fitness < self.pop[self.second].fitness:
                 self.second = ix
 
         #Calculate average fitness
