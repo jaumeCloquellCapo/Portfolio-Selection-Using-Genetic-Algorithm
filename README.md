@@ -1,2 +1,7 @@
-# Optimizador de portafolio de inversión mediante el uso de algoritmos genéticos: caso aplicado al Ibex 35
-El objetivo de este repositorio es el de utilizar Algoritmos genéticos para  abordar  el  problema  de  optimizar  carteras  de  inversión.  Se  pretende que los modelos propuestos utilicen la medida de riesgo de Sharpe y que solucionen las limitaciones que presenta el modelo  clásico  de  Markowitz.  Se  persigue  demostrar,   con  sus  resultados  en  cuanto  a  rendimiento, que  son  una  herramienta  a  tener en cuenta por los inversores y gestores.
+# Portfolio Selection Using Genetic Algorithm
+
+[Blog Post](https://jaumecloquellcapo.github.io/jaumeCloquellCapo.github.io/sharpe-ratio-risk.html)
+
+## What is it?
+
+The objective of this repository is to use genetic algorithms to address the problem of optimizing investment portfolios.  It is intended that the proposed models use Sharpe's risk measure and that they solve the limitations presented by the classical Markowitz model.  The aim is to demonstrate, with its results in terms of performance, that they are a tool to be taken into account by investors and managers.
