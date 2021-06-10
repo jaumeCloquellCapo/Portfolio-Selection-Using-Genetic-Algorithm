@@ -1,6 +1,6 @@
 # Portfolio Selection Using Genetic Algorithm
 
-[Blog Post](https://jaumecloquellcapo.github.io/jaumeCloquellCapo.github.io/sharpe-ratio-risk.html)
+[Blog Post](https://www.notion.so/Portfolio-Optimization-Based-on-Sharpe-Ratio-and-Genetic-Algorithm-bee99b40337848049aea0f7d90166eda)
 
 ## What is it?
 
